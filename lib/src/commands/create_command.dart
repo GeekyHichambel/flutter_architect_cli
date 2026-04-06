@@ -23,7 +23,7 @@ enum ArchitecturePattern {
 /// State Management solutions available for Flutter projects
 enum StateManagement {
   /// BLoC (Event-Driven) state management
-  blocEvt('Block (Event Driven)'),
+  blocEvt('BLoC (Event Driven)'),
 
   /// BLoC (Cubit) state management
   bloc('BLoC (Cubit)'),

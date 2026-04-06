@@ -130,8 +130,6 @@ class AuthCubit extends Cubit<AuthState> {
   static const String blocEvtAuthStateTemplate = '''
 part of 'auth_bloc.dart';
 
-import 'package:equatable/equatable.dart';
-
 class AuthState extends Equatable{
   final bool isLoading;
   final String? error;
@@ -167,8 +165,6 @@ class AuthState extends Equatable{
   /// BLoC (Event-Driven) Auth Event template
   static const String blocEvtAuthEventTemplate = '''
 part of 'auth_bloc.dart';
-
-import 'package:equatable/equatable.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -214,6 +210,7 @@ class AuthErrorCleared extends AuthEvent {
   /// BLoC (Event-Driven) Auth Bloc template
   static const String blocEvtAuthBlocTemplate = '''
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import '{{repositoryImport}}';
 
 part 'auth_state.dart';
