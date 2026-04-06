@@ -16,7 +16,7 @@ Choose from **Clean Architecture**, **MVC**, or **MVVM** patterns with interacti
 ## 🚀 Features
 
 - 🧱 **3 Architecture Patterns**: Clean Architecture, MVC, MVVM
-- 🔄 **4 State Management Options**: BLoC (Cubit), Provider, Riverpod, GetX
+- 🔄 **5 State Management Options**: BLoC (Event-Driven), BLoC (Cubit), Provider, Riverpod, GetX
 - ⚙️ **Interactive Selection**: Choose your preferred pattern during project creation  
 - 🧩 **Feature-First Organization**: Modular and scalable code structure  
 - 🧰 **Production-Ready**: Pre-configured with best practices and utilities  
@@ -80,15 +80,16 @@ Enter your choice (1-3): 1
 
 🎛️  Please select a state management solution:
 
-1. BLoC (Cubit)
-2. Provider
-3. Riverpod
-4. GetX
+1. BLoC (Event-Driven)
+2. BLoC (Cubit)
+3. Provider
+4. Riverpod
+5. GetX
 
-Enter your choice (1-4): 1
+Enter your choice (1-5): 1
 
 🎯 Selected Architecture: Clean Architecture Pattern
-🎯 Selected State Management: BLoC (Cubit)
+🎯 Selected State Management: BLoC (Event-Driven)
 🏢 Organization: com.mycompany
 
 ✅ Clean Architecture project created successfully!
@@ -132,7 +133,7 @@ lib/
 
 #### 🧰 Technologies
 - GetIt for dependency injection  
-- Multiple state management options (BLoC Cubit, Provider, Riverpod, GetX)  
+- Multiple state management options (BLoC Event-Driven, BLoC Cubit, Provider, Riverpod, GetX)  
 - Repository pattern  
 - Advanced template system for code generation  
 
@@ -159,7 +160,7 @@ lib/
 - Lightweight architecture  
 
 #### 🧰 Technologies
-- Multiple state management options (BLoC Cubit, Provider, Riverpod, GetX)  
+- Multiple state management options (BLoC Event-Driven, BLoC Cubit, Provider, Riverpod, GetX)  
 - Model classes with JSON serialization  
 - Service layer for business logic  
 - Template-based code generation  
@@ -202,7 +203,7 @@ lib/
 - Suitable for complex UIs  
 
 #### 🧰 Technologies
-- Multiple state management options (BLoC Cubit, Provider, Riverpod, GetX)  
+- Multiple state management options (BLoC Event-Driven, BLoC Cubit, Provider, Riverpod, GetX)  
 - Repository pattern  
 - ViewModel for business logic  
 - Advanced template system  
@@ -224,10 +225,11 @@ flutter_architect create <project_name>
 - 3️⃣ MVVM – Ideal for complex data-driven UIs
 
 **State Management Options:**
-- 1️⃣ BLoC (Cubit) – Reactive state management  
-- 2️⃣ Provider – Simple state management  
-- 3️⃣ Riverpod – Modern state management  
-- 4️⃣ GetX – All-in-one solution
+- 1️⃣ BLoC (Event-Driven) – Event-driven state management
+- 2️⃣ BLoC (Cubit) – Reactive state management  
+- 3️⃣ Provider – Simple state management  
+- 4️⃣ Riverpod – Modern state management  
+- 5️⃣ GetX – All-in-one solution
 
 ---
 
@@ -317,7 +319,7 @@ flutter_architect create <project_name>
 - **Consistent Structure**: Standardized folder structures and naming conventions
 
 ### Enhanced State Management
-- **4 State Management Options**: Full support for BLoC, Provider, Riverpod, GetX
+- **5 State Management Options**: Full support for BLoC, BLoC Cubit, Provider, Riverpod, GetX
 - **Pattern-Specific Integration**: Each architecture pattern optimized for different state management solutions
 - **Template-Based Generation**: State management files generated from reusable templates
 

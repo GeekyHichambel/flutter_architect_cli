@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Added the functionality for BLoC event-driven state management
+
 ## 1.1.1
 
 - **FIX**: Resolved `MultiProvider` assertion error by adding placeholder provider to prevent empty children list
