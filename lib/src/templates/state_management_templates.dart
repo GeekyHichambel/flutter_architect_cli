@@ -126,6 +126,188 @@ class AuthCubit extends Cubit<AuthState> {
 }
 ''';
 
+  /// BLoC (Event-Driven) Auth State template
+  static const String blocEvtAuthStateTemplate = '''
+part of 'auth_bloc.dart';
+
+import 'package:equatable/equatable.dart';
+
+class AuthState extends Equatable{
+  final bool isLoading;
+  final String? error;
+  final bool isAuthenticated;
+  final String? userEmail;
+
+  const AuthState({
+    this.isLoading = false,
+    this.error,
+    this.isAuthenticated = false,
+    this.userEmail,
+  });
+
+  AuthState copyWith({
+    bool? isLoading,
+    String? error,
+    bool? isAuthenticated,
+    String? userEmail,
+  }) {
+    return AuthState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      userEmail: userEmail ?? this.userEmail,
+    );
+  }
+
+  @override
+  List<Object?> get props => [isLoading, error, isAuthenticated, userEmail]; 
+}
+''';
+
+  /// BLoC (Event-Driven) Auth Event template
+  static const String blocEvtAuthEventTemplate = '''
+part of 'auth_bloc.dart';
+
+import 'package:equatable/equatable.dart';
+
+abstract class AuthEvent extends Equatable {
+  const AuthEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthLoginRequested extends AuthEvent {
+  final String email;
+  final String password;
+
+  const AuthLoginRequested(this.email, this.password);
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+class AuthRegisterRequested extends AuthEvent {
+  final String email;
+  final String password;
+  final String name;
+  
+  const AuthRegisterRequested(this.email, this.password, this.name); 
+
+  @override
+  List<Object?> get props => [email, password, name];
+}
+
+class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}
+
+class AuthCheckRequested extends AuthEvent {
+  const AuthCheckRequested();
+}
+
+class AuthErrorCleared extends AuthEvent {
+  const AuthErrorCleared();
+}
+''';
+
+  /// BLoC (Event-Driven) Auth Bloc template
+  static const String blocEvtAuthBlocTemplate = '''
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '{{repositoryImport}}';
+
+part 'auth_state.dart';
+part 'auth_event.dart';
+
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final {{repositoryType}} repository;
+
+  AuthBloc({required this.repository}) : super(const AuthState()) {
+    on<AuthLoginRequested>(_onLoginRequested);
+    on<AuthRegisterRequested>(_onRegisterRequested);
+    on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthCheckRequested>(_onCheckRequested);
+    on<AuthErrorCleared>(_onErrorCleared);
+  }
+
+  Future<void> _onLoginRequested(
+    AuthLoginRequested event,
+    Emitter<AuthState> emit
+  ) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final user = await repository.login(event.email, event.password);
+      emit(state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        userEmail: user.email,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Login failed: \$e'));
+    }
+  }
+
+  Future<void> _onRegisterRequested(
+    AuthRegisterRequested event,
+    Emitter<AuthState> emit
+  ) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final user = await repository.register(event.email, event.password, event.name);
+      emit(state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        userEmail: user.email,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Registration failed: \$e'));
+    }
+  }
+
+  Future<void> _onLogoutRequested(
+    AuthLogoutRequested event,
+    Emitter<AuthState> emit
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await repository.logout();
+      emit(const AuthState());
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Logout failed: \$e'));
+    }
+  }
+
+  Future<void> _onCheckRequested(
+    AuthCheckRequested event,
+    Emitter<AuthState> emit
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final isLoggedIn = await repository.isLoggedIn();
+      if (isLoggedIn) {
+        final user = await repository.getCurrentUser();
+        emit(state.copyWith(
+          isLoading: false,
+          isAuthenticated: true,
+          userEmail: user.email, 
+        ));
+      } else {
+        emit(state.copyWith(isLoading: false));
+      }
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Authentication check failed: \$e'));
+    }
+  }
+
+  void _onErrorCleared(
+    AuthErrorCleared event,
+    Emitter<AuthState> emit
+  ) {
+    emit(state.copyWith(error: null));
+  }
+}
+''';
+
   /// Provider Auth Provider template
   static const String providerAuthProviderTemplate = '''
 import 'package:flutter/foundation.dart';
@@ -293,77 +475,26 @@ class AuthController extends GetxController {
 }
 ''';
 
-  /// StateNotifier Auth State template
-  static const String stateNotifierAuthStateTemplate = '''
-/// Auth state for State Notifier
-class AuthState {
-  final bool isLoading;
-  final String? error;
-  final bool isAuthenticated;
-  final String? userEmail;
-
-  const AuthState({
-    this.isLoading = false,
-    this.error,
-    this.isAuthenticated = false,
-    this.userEmail,
-  });
-
-  AuthState copyWith({
-    bool? isLoading,
-    String? error,
-    bool? isAuthenticated,
-    String? userEmail,
-  }) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      userEmail: userEmail ?? this.userEmail,
-    );
-  }
-}
-''';
-
-  /// StateNotifier Auth Notifier template
-  static const String stateNotifierAuthNotifierTemplate = '''
-import 'package:state_notifier/state_notifier.dart';
-import '{{repositoryImport}}';
-import 'auth_state.dart';
-
-class AuthNotifier extends StateNotifier<AuthState> {
-  final {{repositoryType}} repository;
-
-  AuthNotifier({required this.repository}) : super(const AuthState());
-
-  Future<void> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
-    
-    try {
-      final user = await repository.login(email, password);
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: true,
-        userEmail: user.email,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Login failed: \$e',
-      );
-    }
-  }
-
-  void logout() {
-    state = const AuthState();
-  }
-}
-''';
-
   /// Get app wrapper based on state management
   static String getAppWrapper(
       StateManagement stateManagement, String projectName, String homeWidget) {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        return '''MultiBlocProvider(
+      providers: [
+        // Add your Bloc providers here
+        // BlocProvider<AuthBloc>(create: (context) => AuthBloc(repository: AuthRepositoryImpl())),
+      ],
+      child: MaterialApp(
+        title: '$projectName',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+        ),
+        home: const $homeWidget(),
+        debugShowCheckedModeBanner: false,
+      ),
+    )''';
       case StateManagement.bloc:
         return '''MultiBlocProvider(
       providers: [

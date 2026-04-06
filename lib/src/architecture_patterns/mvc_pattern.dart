@@ -233,6 +233,9 @@ class AuthService {
   void _createAuthController() {
     // Create a simple auth controller based on state management
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        _createBlocEvtAuthController();
+        break;
       case StateManagement.bloc:
         _createBlocAuthController();
         break;
@@ -306,6 +309,105 @@ class AuthController extends Cubit<AuthState> {
   }
 
   void logout() {
+    emit(const AuthState());
+  }
+}
+''');
+  }
+
+  void _createBlocEvtAuthController() {
+    fileWriter.writeFile('lib/features/auth/controllers/auth_controller.dart', '''
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
+import '../../../services/auth_service.dart';
+
+abstract class AuthEvent extends Equatable {
+  const AuthEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthLoginRequested extends AuthEvent {
+  final String email;
+  final String password;
+
+  const AuthLoginRequested({required this.email, required this.password});
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}
+
+
+class AuthState extends Equatable {
+  final bool isLoading;
+  final String? error;
+  final bool isAuthenticated;
+  final String? userEmail;
+
+  const AuthState({
+    this.isLoading = false,
+    this.error,
+    this.isAuthenticated = false,
+    this.userEmail,
+  });
+
+  AuthState copyWith({
+    bool? isLoading,
+    String? error,
+    bool? isAuthenticated,
+    String? userEmail,
+  }) {
+    return AuthState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      userEmail: userEmail ?? this.userEmail,
+    );
+  }
+
+  @override
+  List<Object?> get props => [isLoading, error, isAuthenticated, userEmail];
+}
+
+
+class AuthController extends Bloc<AuthEvent, AuthState> {
+  final AuthService authService;
+
+  AuthController({required this.authService}) : super(const AuthState()) {
+    on<AuthLoginRequested>(_onLoginRequested);
+    on<AuthLogoutRequested>(_onLogoutRequested);
+  }
+
+  Future<void> _onLoginRequested(
+    AuthLoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    
+    try {
+      final user = await authService.login(event.email, event.password);
+      emit(state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        userEmail: user.email,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        error: 'Login failed: \$e',
+      ));
+    }
+  }
+
+  void _onLogoutRequested(
+    AuthLogoutRequested event,
+    Emitter<AuthState> emit,
+  ) {
     emit(const AuthState());
   }
 }

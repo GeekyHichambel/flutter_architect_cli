@@ -555,6 +555,9 @@ class ErrorDisplayWidget extends StatelessWidget {
 
   void _createViewModels() {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        _createBlocViewModels();
+        break;
       case StateManagement.bloc:
         _createCubitViewModels();
         break;
@@ -568,6 +571,307 @@ class ErrorDisplayWidget extends StatelessWidget {
         _createGetxViewModels();
         break;
     }
+  }
+
+  void _createBlocViewModels() {
+    // User State
+    fileWriter.writeFile('lib/presentation/blocs/user/user_state.dart', '''
+part of 'user_bloc.dart';
+
+class UserState extends Equatable {
+  final bool isLoading;
+  final String? error;
+  final List<UserEntity> users;
+  final UserEntity? selectedUser;
+
+  const UserState({
+    this.isLoading = false,
+    this.error,
+    this.users = const [],
+    this.selectedUser,
+  });
+
+  UserState copyWith({
+    bool? isLoading,
+    String? error,
+    List<UserEntity>? users,
+    UserEntity? selectedUser,
+  }) {
+    return UserState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      users: users ?? this.users,
+      selectedUser: selectedUser ?? this.selectedUser,
+    );
+  }
+
+  @override
+  List<Object?> get props => [isLoading, error, users, selectedUser];
+}
+''');
+
+    // User Events
+    fileWriter.writeFile('lib/presentation/blocs/user/user_event.dart', '''
+part of 'user_bloc.dart';
+
+abstract class UserEvent extends Equatable {
+  const UserEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class UserLoadRequested extends UserEvent {
+  const UserLoadRequested();
+}
+
+class UserByIdRequested extends UserEvent {
+  final String userId;
+  const UserByIdRequested(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class UserSelected extends UserEvent {
+  final String userId;
+  const UserSelected(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class UserErrorCleared extends UserEvent {
+  const UserErrorCleared();
+}
+
+class UserRefreshRequested extends UserEvent {
+  const UserRefreshRequested();
+}
+''');
+
+    // User Bloc
+    fileWriter.writeFile('lib/presentation/blocs/user/user_bloc.dart', '''
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
+import '../../../domain/entities/user_entity.dart';
+import '../../../domain/usecases/get_users_usecase.dart';
+import '../../../domain/usecases/get_user_by_id_usecase.dart';
+
+part 'user_event.dart';
+part 'user_state.dart';
+
+class UserBloc extends Bloc<UserEvent, UserState> {
+  final GetUsersUseCase getUsersUseCase;
+  final GetUserByIdUseCase getUserByIdUseCase;
+
+  UserBloc({
+    required this.getUsersUseCase,
+    required this.getUserByIdUseCase,
+  }) : super(const UserState()) {
+    on<UserLoadRequested>(_onLoadRequested);
+    on<UserByIdRequested>(_onByIdRequested);
+    on<UserSelected>(_onSelected);
+    on<UserErrorCleared>(_onErrorCleared);
+    on<UserRefreshRequested>(_onRefreshRequested);
+  }
+
+  Future<void> _onLoadRequested(UserLoadRequested event, Emitter<UserState> emit) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final users = await getUsersUseCase();
+      emit(state.copyWith(isLoading: false, users: users));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Failed to load users: \$e'));
+    }
+  }
+
+  Future<void> _onByIdRequested(UserByIdRequested event, Emitter<UserState> emit) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final user = await getUserByIdUseCase(event.userId);
+      emit(state.copyWith(isLoading: false, selectedUser: user));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Failed to load user: \$e'));
+    }
+  }
+
+  void _onSelected(UserSelected event, Emitter<UserState> emit) {
+    final user = state.users.firstWhere(
+      (u) => u.id == event.userId,
+      orElse: () => state.users.first,
+    );
+    emit(state.copyWith(selectedUser: user));
+  }
+
+  void _onErrorCleared(UserErrorCleared event, Emitter<UserState> emit) {
+    emit(state.copyWith(error: null));
+  }
+
+  Future<void> _onRefreshRequested(UserRefreshRequested event, Emitter<UserState> emit) async {
+    add(const UserLoadRequested());
+  }
+}
+''');
+
+    // Auth State
+    fileWriter.writeFile('lib/presentation/blocs/auth/auth_state.dart', '''
+part of 'auth_bloc.dart';
+
+class AuthState extends Equatable {
+  final bool isLoading;
+  final String? error;
+  final bool isAuthenticated;
+  final UserEntity? currentUser;
+
+  const AuthState({
+    this.isLoading = false,
+    this.error,
+    this.isAuthenticated = false,
+    this.currentUser,
+  });
+
+  AuthState copyWith({
+    bool? isLoading,
+    String? error,
+    bool? isAuthenticated,
+    UserEntity? currentUser,
+  }) {
+    return AuthState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      currentUser: currentUser ?? this.currentUser,
+    );
+  }
+
+  @override
+  List<Object?> get props => [isLoading, error, isAuthenticated, currentUser];
+}
+''');
+
+    // Auth Events
+    fileWriter.writeFile('lib/presentation/blocs/auth/auth_event.dart', '''
+part of 'auth_bloc.dart';
+
+abstract class AuthEvent extends Equatable {
+  const AuthEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthLoginRequested extends AuthEvent {
+  final String email;
+  final String password;
+  const AuthLoginRequested(this.email, this.password);
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+class AuthRegisterRequested extends AuthEvent {
+  final String email;
+  final String password;
+  final String name;
+  const AuthRegisterRequested(this.email, this.password, this.name);
+
+  @override
+  List<Object?> get props => [email, password, name];
+}
+
+class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}
+
+class AuthStatusCheckRequested extends AuthEvent {
+  const AuthStatusCheckRequested();
+}
+
+class AuthErrorCleared extends AuthEvent {
+  const AuthErrorCleared();
+}
+''');
+
+    // Auth Bloc
+    fileWriter.writeFile('lib/presentation/blocs/auth/auth_bloc.dart', '''
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
+import '../../../domain/entities/user_entity.dart';
+import '../../../domain/repositories/auth_repository.dart';
+
+part 'auth_event.dart';
+part 'auth_state.dart';
+
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final AuthRepository authRepository;
+
+  AuthBloc({required this.authRepository}) : super(const AuthState()) {
+    on<AuthLoginRequested>(_onLoginRequested);
+    on<AuthRegisterRequested>(_onRegisterRequested);
+    on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthStatusCheckRequested>(_onStatusCheckRequested);
+    on<AuthErrorCleared>(_onErrorCleared);
+  }
+
+  Future<void> _onLoginRequested(AuthLoginRequested event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final user = await authRepository.login(event.email, event.password);
+      emit(state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        currentUser: user,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Login failed: \$e', isAuthenticated: false));
+    }
+  }
+
+  Future<void> _onRegisterRequested(AuthRegisterRequested event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final user = await authRepository.register(event.email, event.password, event.name);
+      emit(state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        currentUser: user,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Registration failed: \$e', isAuthenticated: false));
+    }
+  }
+
+  Future<void> _onLogoutRequested(AuthLogoutRequested event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await authRepository.logout();
+      emit(const AuthState());
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Logout failed: \$e'));
+    }
+  }
+
+  Future<void> _onStatusCheckRequested(AuthStatusCheckRequested event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final isLoggedIn = await authRepository.isLoggedIn();
+      if (isLoggedIn) {
+        final user = await authRepository.getCurrentUser();
+        emit(state.copyWith(isLoading: false, isAuthenticated: true, currentUser: user));
+      } else {
+        emit(state.copyWith(isLoading: false, isAuthenticated: false));
+      }
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Auth check failed: \$e'));
+    }
+  }
+
+  void _onErrorCleared(AuthErrorCleared event, Emitter<AuthState> emit) {
+    emit(state.copyWith(error: null));
+  }
+}
+''');
   }
 
   void _createCubitViewModels() {

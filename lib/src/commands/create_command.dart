@@ -22,6 +22,9 @@ enum ArchitecturePattern {
 
 /// State Management solutions available for Flutter projects
 enum StateManagement {
+  /// BLoC (Event-Driven) state management
+  blocEvt('Block (Event Driven)'),
+
   /// BLoC (Cubit) state management
   bloc('BLoC (Cubit)'),
 
@@ -234,12 +237,12 @@ class CreateCommand implements Command {
 
       return StateManagement.values[choice - 1];
     } catch (e) {
-      // If there's an issue with stdin, default to BLoC
+      // If there's an issue with stdin, default to BLoC Event-Driven
       // ignore: avoid_print
       print('');
       // ignore: avoid_print
-      print('⚠️  Using default: BLoC (Cubit)');
-      return StateManagement.bloc;
+      print('⚠️  Using default: BLoC (Event Driven)');
+      return StateManagement.blocEvt;
     }
   }
 }

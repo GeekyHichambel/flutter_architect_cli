@@ -244,6 +244,9 @@ abstract class PatternBase {
   /// Creates state management specific auth files
   void createStateManagementAuthFiles() {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        _createBlocEvtAuthFiles();
+        break;
       case StateManagement.bloc:
         _createBlocAuthFiles();
         break;
@@ -273,6 +276,34 @@ abstract class PatternBase {
     templateEngine.writeTemplateFile(
       cubitPath,
       StateManagementTemplates.blocAuthCubitTemplate,
+      {
+        'repositoryImport': '../../domain/repositories/auth_repository.dart',
+        'repositoryType': 'AuthRepository',
+      },
+    );
+  }
+
+  /// Creates BLoC auth files (Event-driven)
+  void _createBlocEvtAuthFiles() {
+    final eventPath = 'lib/features/auth/presentation/bloc/auth_event.dart';
+    final statePath = 'lib/features/auth/presentation/bloc/auth_state.dart';
+    final blocPath = 'lib/features/auth/presentation/bloc/auth_bloc.dart';
+
+    templateEngine.writeTemplateFile(
+      eventPath,
+      StateManagementTemplates.blocEvtAuthEventTemplate,
+      {},
+    );
+
+    templateEngine.writeTemplateFile(
+      statePath,
+      StateManagementTemplates.blocEvtAuthStateTemplate,
+      {},
+    );
+
+    templateEngine.writeTemplateFile(
+      blocPath,
+      StateManagementTemplates.blocEvtAuthBlocTemplate,
       {
         'repositoryImport': '../../domain/repositories/auth_repository.dart',
         'repositoryType': 'AuthRepository',

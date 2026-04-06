@@ -56,6 +56,8 @@ class TemplateEngine {
   /// Gets state management import statement
   String getStateManagementImport() {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        return "import 'package:flutter_bloc/flutter_bloc.dart';";
       case StateManagement.bloc:
         return "import 'package:flutter_bloc/flutter_bloc.dart';";
       case StateManagement.provider:
@@ -70,6 +72,8 @@ class TemplateEngine {
   /// Gets state management folder name
   String getStateManagementFolder() {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        return 'bloc';
       case StateManagement.bloc:
         return 'cubit';
       case StateManagement.provider:
@@ -84,6 +88,8 @@ class TemplateEngine {
   /// Gets state management file name
   String getStateManagementFileName() {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        return 'auth_bloc.dart';
       case StateManagement.bloc:
         return 'auth_cubit.dart';
       case StateManagement.provider:

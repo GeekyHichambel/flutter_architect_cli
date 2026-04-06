@@ -2,6 +2,7 @@ import '../commands/create_command.dart';
 import '../../utils/file_writer.dart';
 import 'base_state_management.dart';
 import 'bloc_state_management.dart';
+import 'bloc_event_state_management.dart';
 import 'provider_state_management.dart';
 import 'riverpod_state_management.dart';
 import 'getx_state_management.dart';
@@ -14,6 +15,8 @@ class StateManagementFactory {
     FileWriter fileWriter,
   ) {
     switch (stateManagement) {
+      case StateManagement.blocEvt:
+        return BlocEvtStateManagement(fileWriter);
       case StateManagement.bloc:
         return BlocStateManagement(fileWriter);
       case StateManagement.provider:
